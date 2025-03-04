@@ -1,0 +1,8 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - echo "Deploying website..."
+      - aws s3 sync . s3://nickiliak-my-test-website/ --delete --acl public-read --exact-timestamps
+      - echo "Deployment complete!"
