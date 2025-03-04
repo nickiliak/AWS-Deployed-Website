@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novonesis Technical Project</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external CSS file -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Novonesis Technical Project Demo</h1>
+        
+        <div class="input-section">
+            <h2>Send a Message to my Gmail.</h2>
+            <input type="text" id="messageInput" placeholder="Enter a message">
+            <button id="sendMessage">Send</button>
+        </div>
+
+        <div class="message-section">
+            <h2>Messages</h2>
+            <button id="fetchMessages">Load Messages from a Table DynamoDB</button>
+            <button id="clearMessages" class="delete-button">Clean DB</button>
+            <ul id="messagesList"></ul>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = "https://v9ltp3kel3.execute-api.eu-north-1.amazonaws.com/message";
+
+        document.getElementById("fetchMessages").addEventListener("click", function() {
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Fetched Data:", data);
+                    const list = document.getElementById("messagesList");
+                    list.innerHTML = "";
+                    if (!Array.isArray(data)) {
+                        console.error("Expected an array but got:", data);
+                        return;
+                    }
+                    data.forEach(item => {
+                        const li = document.createElement("li");
+                        li.innerText = item.message;
+                        list.appendChild(li);
+                    });
+                })
+                .catch(error => console.error("Fetch error:", error));
+        });
+        
+        document.getElementById("clearMessages").addEventListener("click", function() {
+            if (!confirm("Are you sure you want to delete all messages?")) return;
+
+            fetch(apiUrl, {
+                method: "DELETE"
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                document.getElementById("messagesList").innerHTML = ""; // Clear UI list
+            })
+            .catch(error => console.error("Fetch error:", error));
+        });
+
+        document.getElementById("sendMessage").addEventListener("click", function() {
+            const message = document.getElementById("messageInput").value.trim();
+
+            if (!message) {
+                alert("Please enter a message!");
+                return;
+            }
+
+            fetch(apiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message })
+            })
+            .then(response => response.json())
+            .then(data => alert("Message sent successfully!"))
+            .catch(error => console.error("Fetch error:", error));
+        });
+    </script>
+</body>
+</html>
